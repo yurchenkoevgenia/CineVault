@@ -1,4 +1,5 @@
-﻿using CineVault.API.Controllers.Requests;
+﻿using Asp.Versioning;
+using CineVault.API.Controllers.Requests;
 using CineVault.API.Controllers.Responses;
 using CineVault.API.Entities;
 using Microsoft.AspNetCore.Mvc;
@@ -6,7 +7,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CineVault.API.Controllers;
 
-[Route("api/[controller]/[action]")]
+[ApiVersion(1)]
+[ApiVersion(2)]
+[ApiController]
+[Route("api/v{v:apiVersion}/[controller]/[action]")]
 public sealed class MoviesController : ControllerBase
 {
     private readonly CineVaultDbContext dbContext;
@@ -16,6 +20,7 @@ public sealed class MoviesController : ControllerBase
         this.dbContext = dbContext;
     }
 
+    [MapToApiVersion(1)]
     [HttpGet]
     public async Task<ActionResult<List<MovieResponse>>> GetMovies()
     {
@@ -39,6 +44,7 @@ public sealed class MoviesController : ControllerBase
         return base.Ok(movies);
     }
 
+    [MapToApiVersion(2)]
     [HttpGet("{id}")]
     public async Task<ActionResult<MovieResponse>> GetMovieById(int id)
     {
@@ -68,6 +74,7 @@ public sealed class MoviesController : ControllerBase
         return base.Ok(response);
     }
 
+    [MapToApiVersion(1)]
     [HttpPost]
     public async Task<ActionResult> CreateMovie(MovieRequest request)
     {
@@ -86,6 +93,7 @@ public sealed class MoviesController : ControllerBase
         return base.Created();
     }
 
+    [MapToApiVersion(2)]
     [HttpPut("{id}")]
     public async Task<ActionResult> UpdateMovie(int id, MovieRequest request)
     {

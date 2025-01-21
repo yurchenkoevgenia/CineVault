@@ -1,4 +1,5 @@
-﻿using CineVault.API.Controllers.Requests;
+﻿using Asp.Versioning;
+using CineVault.API.Controllers.Requests;
 using CineVault.API.Controllers.Responses;
 using CineVault.API.Entities;
 using Microsoft.AspNetCore.Mvc;
@@ -6,7 +7,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CineVault.API.Controllers;
 
-[Route("api/[controller]/[action]")]
+[ApiVersion(1)]
+[ApiVersion(2)]
+[ApiController]
+[Route("api/v{v:apiVersion}/[controller]/[action]")]
 public sealed class ReviewsController : ControllerBase
 {
     private readonly CineVaultDbContext dbContext;
@@ -16,6 +20,7 @@ public sealed class ReviewsController : ControllerBase
         this.dbContext = dbContext;
     }
 
+    [MapToApiVersion(2)]
     [HttpGet]
     public async Task<ActionResult<List<ReviewResponse>>> GetReviews()
     {
@@ -38,6 +43,7 @@ public sealed class ReviewsController : ControllerBase
         return base.Ok(reviews);
     }
 
+    [MapToApiVersion(1)]
     [HttpGet("{id}")]
     public async Task<ActionResult<ReviewResponse>> GetReviewById(int id)
     {
@@ -66,6 +72,7 @@ public sealed class ReviewsController : ControllerBase
         return base.Ok(response);
     }
 
+    [MapToApiVersion(2)]
     [HttpPost]
     public async Task<ActionResult> CreateReview(ReviewRequest request)
     {
@@ -83,6 +90,7 @@ public sealed class ReviewsController : ControllerBase
         return base.Created();
     }
 
+    [MapToApiVersion(1)]
     [HttpPut("{id}")]
     public async Task<ActionResult> UpdateReview(int id, ReviewRequest request)
     {

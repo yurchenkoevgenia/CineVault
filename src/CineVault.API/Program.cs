@@ -1,48 +1,50 @@
+using Asp.Versioning;
 using CineVault.API.Extensions;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.OpenApi.Models;
+
 [assembly: ApiController]
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddApiVersioning(options =>
+{
+    options.DefaultApiVersion = new ApiVersion(1);
+    options.AssumeDefaultVersionWhenUnspecified = true;
+    options.ReportApiVersions = true;
+    options.ApiVersionReader = ApiVersionReader.Combine(
+        new UrlSegmentApiVersionReader(),
+        new HeaderApiVersionReader("X-Api-Version")
+    );
+})
+.AddMvc()
+.AddApiExplorer(options =>
+{
+    options.GroupNameFormat = "'v'V";
+    options.SubstituteApiVersionInUrl = true;
+});
+
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo { Title = "CineVault API V1", Version = "v1" });
+    options.SwaggerDoc("v2", new OpenApiInfo { Title = "CineVault API V2", Version = "v2" });
+});
+
 builder.Services.AddCineVaultDbContext(builder.Configuration);
 
 builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
-//Завдання b: Виведення активного середовища в консоль
-Console.WriteLine($"Active Environment: {builder.Environment.EnvironmentName}");
-
-//Завдання c: Обмеження рівня логування для Production
-if (builder.Environment.IsProduction())
-{
-    builder.Logging.SetMinimumLevel(LogLevel.Warning);
-}
-
-//Завдання d: Swagger тільки в Development
-if (builder.Environment.IsDevelopment())
-{
-    builder.Services.AddSwaggerGen();
-}
 
 var app = builder.Build();
 
-//Завдання h: Метод IsLocal
-if (app.Environment.IsLocal())
+app.UseSwagger();
+app.UseSwaggerUI(options =>
 {
-    app.UseDeveloperExceptionPage();
-}
-
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+    options.SwaggerEndpoint("/swagger/v1/swagger.json", "CineVault API V1");
+    options.SwaggerEndpoint("/swagger/v2/swagger.json", "CineVault API V2");
+});
 
 app.UseHttpsRedirection();
-
 app.UseAuthorization();
-
 app.MapControllers();
 
 await app.RunAsync();

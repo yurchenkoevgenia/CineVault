@@ -1,4 +1,5 @@
-﻿using CineVault.API.Controllers.Requests;
+﻿using Asp.Versioning;
+using CineVault.API.Controllers.Requests;
 using CineVault.API.Controllers.Responses;
 using CineVault.API.Entities;
 using Microsoft.AspNetCore.Mvc;
@@ -6,7 +7,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CineVault.API.Controllers;
 
-[Route("api/[controller]/[action]")]
+[ApiVersion(1)]
+[ApiVersion(2)]
+[ApiController]
+[Route("api/v{v:apiVersion}/[controller]/[action]")]
 public class UsersController : ControllerBase
 {
     private readonly CineVaultDbContext dbContext;
@@ -16,6 +20,7 @@ public class UsersController : ControllerBase
         this.dbContext = dbContext;
     }
 
+    [MapToApiVersion(1)]
     [HttpGet]
     public async Task<ActionResult<List<UserResponse>>> GetUsers()
     {
@@ -31,6 +36,7 @@ public class UsersController : ControllerBase
         return base.Ok(users);
     }
 
+    [MapToApiVersion(2)]
     [HttpGet("{id}")]
     public async Task<ActionResult<UserResponse>> GetUserById(int id)
     {
@@ -51,6 +57,7 @@ public class UsersController : ControllerBase
         return base.Ok(response);
     }
 
+    [MapToApiVersion(1)]
     [HttpPost]
     public async Task<ActionResult> CreateUser(UserRequest request)
     {
@@ -67,6 +74,7 @@ public class UsersController : ControllerBase
         return base.Ok();
     }
 
+    [MapToApiVersion(2)]
     [HttpPut("{id}")]
     public async Task<ActionResult> UpdateUser(int id, UserRequest request)
     {
