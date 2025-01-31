@@ -1,25 +1,23 @@
-﻿using CineVault.API.Controllers.Requests;
-using CineVault.API.Controllers.Responses;
-using CineVault.API.Entities;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-
-namespace CineVault.API.Controllers;
+﻿namespace CineVault.API.Controllers;
 
 [Route("api/[controller]/[action]")]
 public class UsersController : ControllerBase
 {
-    private readonly CineVaultDbContext dbContext;
+    private readonly CineVaultDbContext _dbContext;
+    private readonly ILogger _logger;
 
-    public UsersController(CineVaultDbContext dbContext)
+    public UsersController(CineVaultDbContext dbContext, ILogger logger)
     {
-        this.dbContext = dbContext;
+        _dbContext = dbContext;
+        _logger = logger;
     }
 
     [HttpGet]
     public async Task<ActionResult<List<UserResponse>>> GetUsers()
     {
-        var users = await this.dbContext.Users
+        _logger.Information("Executing GetUsers method.");
+
+        var users = await _dbContext.Users
             .Select(u => new UserResponse
             {
                 Id = u.Id,
@@ -28,17 +26,20 @@ public class UsersController : ControllerBase
             })
             .ToListAsync();
 
-        return base.Ok(users);
+        return Ok(users);
     }
 
     [HttpGet("{id}")]
     public async Task<ActionResult<UserResponse>> GetUserById(int id)
     {
-        var user = await this.dbContext.Users.FindAsync(id);
+        _logger.Information("Executing GetUserById method for user ID {UserId}.", id);
+
+        var user = await _dbContext.Users.FindAsync(id);
 
         if (user is null)
         {
-            return base.NotFound();
+            _logger.Warning("User with ID {UserId} not found.", id);
+            return NotFound();
         }
 
         var response = new UserResponse
@@ -48,12 +49,14 @@ public class UsersController : ControllerBase
             Email = user.Email
         };
 
-        return base.Ok(response);
+        return Ok(response);
     }
 
     [HttpPost]
     public async Task<ActionResult> CreateUser(UserRequest request)
     {
+        _logger.Information("Executing CreateUser method for username {Username}.", request.Username);
+
         var user = new User
         {
             Username = request.Username,
@@ -61,44 +64,50 @@ public class UsersController : ControllerBase
             Password = request.Password
         };
 
-        this.dbContext.Users.Add(user);
-        await this.dbContext.SaveChangesAsync();
+        _dbContext.Users.Add(user);
+        await _dbContext.SaveChangesAsync();
 
-        return base.Ok();
+        return Ok();
     }
 
     [HttpPut("{id}")]
     public async Task<ActionResult> UpdateUser(int id, UserRequest request)
     {
-        var user = await this.dbContext.Users.FindAsync(id);
+        _logger.Information("Executing UpdateUser method for user ID {UserId}.", id);
+
+        var user = await _dbContext.Users.FindAsync(id);
 
         if (user is null)
         {
-            return base.NotFound();
+            _logger.Warning("User with ID {UserId} not found for update.", id);
+            return NotFound();
         }
 
         user.Username = request.Username;
         user.Email = request.Email;
         user.Password = request.Password;
 
-        await this.dbContext.SaveChangesAsync();
+        await _dbContext.SaveChangesAsync();
 
-        return base.Ok();
+        return Ok();
     }
 
     [HttpDelete("{id}")]
     public async Task<ActionResult> DeleteUser(int id)
     {
-        var user = await this.dbContext.Users.FindAsync(id);
+        _logger.Information("Executing DeleteUser method for user ID {UserId}.", id);
+
+        var user = await _dbContext.Users.FindAsync(id);
 
         if (user is null)
         {
-            return base.NotFound();
+            _logger.Warning("User with ID {UserId} not found for deletion.", id);
+            return NotFound();
         }
 
-        this.dbContext.Users.Remove(user);
-        await this.dbContext.SaveChangesAsync();
+        _dbContext.Users.Remove(user);
+        await _dbContext.SaveChangesAsync();
 
-        return base.Ok();
+        return Ok();
     }
 }

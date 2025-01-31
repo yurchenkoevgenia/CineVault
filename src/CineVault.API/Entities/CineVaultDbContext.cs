@@ -1,6 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-
-namespace CineVault.API.Entities;
+﻿namespace CineVault.API.Entities;
 
 public sealed class CineVaultDbContext : DbContext
 {

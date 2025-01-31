@@ -1,25 +1,23 @@
-﻿using CineVault.API.Controllers.Requests;
-using CineVault.API.Controllers.Responses;
-using CineVault.API.Entities;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-
-namespace CineVault.API.Controllers;
+﻿namespace CineVault.API.Controllers;
 
 [Route("api/[controller]/[action]")]
 public sealed class ReviewsController : ControllerBase
 {
-    private readonly CineVaultDbContext dbContext;
+    private readonly CineVaultDbContext _dbContext;
+    private readonly ILogger _logger;
 
-    public ReviewsController(CineVaultDbContext dbContext)
+    public ReviewsController(CineVaultDbContext dbContext, ILogger logger)
     {
-        this.dbContext = dbContext;
+        _dbContext = dbContext;
+        _logger = logger;
     }
 
     [HttpGet]
     public async Task<ActionResult<List<ReviewResponse>>> GetReviews()
     {
-        var reviews = await this.dbContext.Reviews
+        _logger.Information("Executing GetReviews method.");
+
+        var reviews = await _dbContext.Reviews
             .Include(r => r.Movie)
             .Include(r => r.User)
             .Select(r => new ReviewResponse
@@ -35,20 +33,23 @@ public sealed class ReviewsController : ControllerBase
             })
             .ToListAsync();
 
-        return base.Ok(reviews);
+        return Ok(reviews);
     }
 
     [HttpGet("{id}")]
     public async Task<ActionResult<ReviewResponse>> GetReviewById(int id)
     {
-        var review = await this.dbContext.Reviews
+        _logger.Information("Executing GetReviewById method for ID {ReviewId}.", id);
+
+        var review = await _dbContext.Reviews
             .Include(r => r.Movie)
             .Include(r => r.User)
-            .FirstOrDefaultAsync(review => review.Id == id);
+            .FirstOrDefaultAsync(r => r.Id == id);
 
         if (review is null)
         {
-            return base.NotFound();
+            _logger.Warning("Review with ID {ReviewId} not found.", id);
+            return NotFound();
         }
 
         var response = new ReviewResponse
@@ -63,12 +64,14 @@ public sealed class ReviewsController : ControllerBase
             CreatedAt = review.CreatedAt
         };
 
-        return base.Ok(response);
+        return Ok(response);
     }
 
     [HttpPost]
     public async Task<ActionResult> CreateReview(ReviewRequest request)
     {
+        _logger.Information("Executing CreateReview method for movie ID {MovieId} and user ID {UserId}.", request.MovieId, request.UserId);
+
         var review = new Review
         {
             MovieId = request.MovieId,
@@ -77,20 +80,23 @@ public sealed class ReviewsController : ControllerBase
             Comment = request.Comment
         };
 
-        this.dbContext.Reviews.Add(review);
-        await this.dbContext.SaveChangesAsync();
+        _dbContext.Reviews.Add(review);
+        await _dbContext.SaveChangesAsync();
 
-        return base.Created();
+        return Created();
     }
 
     [HttpPut("{id}")]
     public async Task<ActionResult> UpdateReview(int id, ReviewRequest request)
     {
-        var review = await this.dbContext.Reviews.FindAsync(id);
+        _logger.Information("Executing UpdateReview method for review ID {ReviewId}.", id);
+
+        var review = await _dbContext.Reviews.FindAsync(id);
 
         if (review is null)
         {
-            return base.NotFound();
+            _logger.Warning("Review with ID {ReviewId} not found for update.", id);
+            return NotFound();
         }
 
         review.MovieId = request.MovieId;
@@ -98,24 +104,27 @@ public sealed class ReviewsController : ControllerBase
         review.Rating = request.Rating;
         review.Comment = request.Comment;
 
-        await this.dbContext.SaveChangesAsync();
+        await _dbContext.SaveChangesAsync();
 
-        return base.Ok();
+        return Ok();
     }
 
     [HttpDelete("{id}")]
     public async Task<ActionResult> DeleteReview(int id)
     {
-        var review = await this.dbContext.Reviews.FindAsync(id);
+        _logger.Information("Executing DeleteReview method for review ID {ReviewId}.", id);
+
+        var review = await _dbContext.Reviews.FindAsync(id);
 
         if (review is null)
         {
-            return base.NotFound();
+            _logger.Warning("Review with ID {ReviewId} not found for deletion.", id);
+            return NotFound();
         }
 
-        this.dbContext.Reviews.Remove(review);
-        await this.dbContext.SaveChangesAsync();
+        _dbContext.Reviews.Remove(review);
+        await _dbContext.SaveChangesAsync();
 
-        return base.Ok();
+        return Ok();
     }
 }

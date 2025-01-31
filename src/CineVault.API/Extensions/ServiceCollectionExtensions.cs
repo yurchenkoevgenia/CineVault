@@ -1,7 +1,4 @@
-﻿using CineVault.API.Entities;
-using Microsoft.EntityFrameworkCore;
-
-namespace CineVault.API.Extensions;
+﻿namespace CineVault.API.Extensions;
 
 public static class ServiceCollectionExtensions
 {
