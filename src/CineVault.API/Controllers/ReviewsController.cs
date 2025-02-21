@@ -1,4 +1,5 @@
 ﻿using Asp.Versioning;
+using MapsterMapper;
 
 namespace CineVault.API.Controllers;
 
@@ -10,11 +11,13 @@ public sealed class ReviewsController : ControllerBase
 {
     private readonly CineVaultDbContext _dbContext;
     private readonly ILogger _logger;
+    private readonly IMapper _mapper;
 
-    public ReviewsController(CineVaultDbContext dbContext, ILogger logger)
+    public ReviewsController(CineVaultDbContext dbContext, ILogger logger, IMapper mapper)
     {
         _dbContext = dbContext;
         _logger = logger;
+        _mapper = mapper;
     }
 
     [HttpGet]
@@ -26,20 +29,9 @@ public sealed class ReviewsController : ControllerBase
         var reviews = await _dbContext.Reviews
             .Include(r => r.Movie)
             .Include(r => r.User)
-            .Select(r => new ReviewResponse
-            {
-                Id = r.Id,
-                MovieId = r.MovieId,
-                MovieTitle = r.Movie!.Title,
-                UserId = r.UserId,
-                Username = r.User!.Username,
-                Rating = r.Rating,
-                Comment = r.Comment,
-                CreatedAt = r.CreatedAt
-            })
             .ToListAsync();
 
-        return Ok(reviews);
+        return Ok(_mapper.Map<List<ReviewResponse>>(reviews));
     }
 
     [HttpGet("{id}")]
@@ -59,19 +51,7 @@ public sealed class ReviewsController : ControllerBase
             return NotFound();
         }
 
-        var response = new ReviewResponse
-        {
-            Id = review.Id,
-            MovieId = review.MovieId,
-            MovieTitle = review.Movie!.Title,
-            UserId = review.UserId,
-            Username = review.User!.Username,
-            Rating = review.Rating,
-            Comment = review.Comment,
-            CreatedAt = review.CreatedAt
-        };
-
-        return Ok(response);
+        return Ok(_mapper.Map<ReviewResponse>(review));
     }
 
     [HttpPost]
@@ -80,14 +60,7 @@ public sealed class ReviewsController : ControllerBase
     {
         _logger.Information("Executing CreateReview method for movie ID {MovieId} and user ID {UserId}.", request.MovieId, request.UserId);
 
-        var review = new Review
-        {
-            MovieId = request.MovieId,
-            UserId = request.UserId,
-            Rating = request.Rating,
-            Comment = request.Comment
-        };
-
+        var review = _mapper.Map<Review>(request);
         _dbContext.Reviews.Add(review);
         await _dbContext.SaveChangesAsync();
 
@@ -101,18 +74,13 @@ public sealed class ReviewsController : ControllerBase
         _logger.Information("Executing UpdateReview method for review ID {ReviewId}.", id);
 
         var review = await _dbContext.Reviews.FindAsync(id);
-
         if (review is null)
         {
             _logger.Warning("Review with ID {ReviewId} not found for update.", id);
             return NotFound();
         }
 
-        review.MovieId = request.MovieId;
-        review.UserId = request.UserId;
-        review.Rating = request.Rating;
-        review.Comment = request.Comment;
-
+        _mapper.Map(request, review);
         await _dbContext.SaveChangesAsync();
 
         return Ok();
@@ -125,7 +93,6 @@ public sealed class ReviewsController : ControllerBase
         _logger.Information("Executing DeleteReview method for review ID {ReviewId}.", id);
 
         var review = await _dbContext.Reviews.FindAsync(id);
-
         if (review is null)
         {
             _logger.Warning("Review with ID {ReviewId} not found for deletion.", id);
@@ -147,21 +114,9 @@ public sealed class ReviewsController : ControllerBase
         var reviews = await _dbContext.Reviews
             .Include(r => r.Movie)
             .Include(r => r.User)
-            .Select(r => new ReviewResponse
-            {
-                Id = r.Id,
-                MovieId = r.MovieId,
-                MovieTitle = r.Movie!.Title,
-                UserId = r.UserId,
-                Username = r.User!.Username,
-                Rating = r.Rating,
-                Comment = r.Comment,
-                CreatedAt = r.CreatedAt
-            })
             .ToListAsync();
 
-        var response = ApiResponse<List<ReviewResponse>>.Success(reviews);
-        return Ok(response);
+        return Ok(ApiResponse<List<ReviewResponse>>.Success(_mapper.Map<List<ReviewResponse>>(reviews)));
     }
 
     [HttpGet("{id}")]
@@ -181,20 +136,7 @@ public sealed class ReviewsController : ControllerBase
             return NotFound();
         }
 
-        var response = new ReviewResponse
-        {
-            Id = review.Id,
-            MovieId = review.MovieId,
-            MovieTitle = review.Movie!.Title,
-            UserId = review.UserId,
-            Username = review.User!.Username,
-            Rating = review.Rating,
-            Comment = review.Comment,
-            CreatedAt = review.CreatedAt
-        };
-
-        var apiResponse = ApiResponse<ReviewResponse>.Success(response);
-        return Ok(apiResponse);
+        return Ok(ApiResponse<ReviewResponse>.Success(_mapper.Map<ReviewResponse>(review)));
     }
 
     [HttpPost]
@@ -203,31 +145,11 @@ public sealed class ReviewsController : ControllerBase
     {
         _logger.Information("Executing CreateReview method with unified request for movie ID {MovieId} and user ID {UserId}.", request.Data.MovieId, request.Data.UserId);
 
-        var review = new Review
-        {
-            MovieId = request.Data.MovieId,
-            UserId = request.Data.UserId,
-            Rating = request.Data.Rating,
-            Comment = request.Data.Comment
-        };
-
+        var review = _mapper.Map<Review>(request.Data);
         _dbContext.Reviews.Add(review);
         await _dbContext.SaveChangesAsync();
 
-        var response = new ReviewResponse
-        {
-            Id = review.Id,
-            MovieId = review.MovieId,
-            MovieTitle = review.Movie!.Title,
-            UserId = review.UserId,
-            Username = review.User!.Username,
-            Rating = review.Rating,
-            Comment = review.Comment,
-            CreatedAt = review.CreatedAt
-        };
-
-        var apiResponse = ApiResponse<ReviewResponse>.Success(response);
-        return Ok(apiResponse);
+        return Ok(ApiResponse<ReviewResponse>.Success(_mapper.Map<ReviewResponse>(review)));
     }
 
     [HttpPut("{id}")]
@@ -237,34 +159,16 @@ public sealed class ReviewsController : ControllerBase
         _logger.Information("Executing UpdateReview method with unified request for review ID {ReviewId}.", id);
 
         var review = await _dbContext.Reviews.FindAsync(id);
-
         if (review is null)
         {
             _logger.Warning("Review with ID {ReviewId} not found for update.", id);
             return NotFound();
         }
 
-        review.MovieId = request.Data.MovieId;
-        review.UserId = request.Data.UserId;
-        review.Rating = request.Data.Rating;
-        review.Comment = request.Data.Comment;
-
+        _mapper.Map(request.Data, review);
         await _dbContext.SaveChangesAsync();
 
-        var response = new ReviewResponse
-        {
-            Id = review.Id,
-            MovieId = review.MovieId,
-            MovieTitle = review.Movie!.Title,
-            UserId = review.UserId,
-            Username = review.User!.Username,
-            Rating = review.Rating,
-            Comment = review.Comment,
-            CreatedAt = review.CreatedAt
-        };
-
-        var apiResponse = ApiResponse<ReviewResponse>.Success(response);
-        return Ok(apiResponse);
+        return Ok(ApiResponse<ReviewResponse>.Success(_mapper.Map<ReviewResponse>(review)));
     }
 
     [HttpDelete("{id}")]
@@ -274,7 +178,6 @@ public sealed class ReviewsController : ControllerBase
         _logger.Information("Executing DeleteReview method with unified response for review ID {ReviewId}.", id);
 
         var review = await _dbContext.Reviews.FindAsync(id);
-
         if (review is null)
         {
             _logger.Warning("Review with ID {ReviewId} not found for deletion.", id);

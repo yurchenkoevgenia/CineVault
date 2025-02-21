@@ -1,4 +1,7 @@
+using System.Reflection;
 using Asp.Versioning;
+using Mapster;
+using MapsterMapper;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -53,6 +56,11 @@ builder.Services.AddSwaggerGen(options =>
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddScoped<RequestTimingMiddleware>();
+
+var config = TypeAdapterConfig.GlobalSettings;
+config.Scan(Assembly.GetExecutingAssembly());
+builder.Services.AddSingleton(config);
+builder.Services.AddScoped<IMapper, ServiceMapper>();
 
 var app = builder.Build();
 
