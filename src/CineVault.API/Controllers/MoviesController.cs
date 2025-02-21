@@ -1,4 +1,5 @@
 ﻿using Asp.Versioning;
+using MapsterMapper;
 
 namespace CineVault.API.Controllers;
 
@@ -10,11 +11,13 @@ public sealed class MoviesController : ControllerBase
 {
     private readonly CineVaultDbContext _dbContext;
     private readonly ILogger _logger;
+    private readonly IMapper _mapper;
 
-    public MoviesController(CineVaultDbContext dbContext, ILogger logger)
+    public MoviesController(CineVaultDbContext dbContext, ILogger logger, IMapper mapper)
     {
         _dbContext = dbContext;
         _logger = logger;
+        _mapper = mapper;
     }
 
     [HttpGet]
@@ -25,22 +28,10 @@ public sealed class MoviesController : ControllerBase
 
         var movies = await _dbContext.Movies
             .Include(m => m.Reviews)
-            .Select(m => new MovieResponse
-            {
-                Id = m.Id,
-                Title = m.Title,
-                Description = m.Description,
-                ReleaseDate = m.ReleaseDate,
-                Genre = m.Genre,
-                Director = m.Director,
-                AverageRating = m.Reviews.Count != 0
-                    ? m.Reviews.Average(r => r.Rating)
-                    : 0,
-                ReviewCount = m.Reviews.Count
-            })
             .ToListAsync();
 
-        return Ok(movies);
+        var response = _mapper.Map<List<MovieResponse>>(movies);
+        return Ok(response);
     }
 
     [HttpGet("{id}")]
@@ -59,20 +50,7 @@ public sealed class MoviesController : ControllerBase
             return NotFound();
         }
 
-        var response = new MovieResponse
-        {
-            Id = movie.Id,
-            Title = movie.Title,
-            Description = movie.Description,
-            ReleaseDate = movie.ReleaseDate,
-            Genre = movie.Genre,
-            Director = movie.Director,
-            AverageRating = movie.Reviews.Count != 0
-                ? movie.Reviews.Average(r => r.Rating)
-                : 0,
-            ReviewCount = movie.Reviews.Count
-        };
-
+        var response = _mapper.Map<MovieResponse>(movie);
         return Ok(response);
     }
 
@@ -94,7 +72,7 @@ public sealed class MoviesController : ControllerBase
         await _dbContext.Movies.AddAsync(movie);
         await _dbContext.SaveChangesAsync();
 
-        return Created();
+        return CreatedAtAction(nameof(GetMovieById), new { id = movie.Id }, movie);
     }
 
     [HttpPut("{id}")]
@@ -150,21 +128,11 @@ public sealed class MoviesController : ControllerBase
 
         var movies = await _dbContext.Movies
             .Include(m => m.Reviews)
-            .Select(m => new MovieResponse
-            {
-                Id = m.Id,
-                Title = m.Title,
-                Description = m.Description,
-                ReleaseDate = m.ReleaseDate,
-                Genre = m.Genre,
-                Director = m.Director,
-                AverageRating = m.Reviews.Count != 0 ? m.Reviews.Average(r => r.Rating) : 0,
-                ReviewCount = m.Reviews.Count
-            })
             .ToListAsync();
 
-        var response = ApiResponse<List<MovieResponse>>.Success(movies);
-        return Ok(response);
+        var response = _mapper.Map<List<MovieResponse>>(movies);
+        var apiResponse = ApiResponse<List<MovieResponse>>.Success(response);
+        return Ok(apiResponse);
     }
 
     [HttpGet("{id}")]
@@ -183,18 +151,7 @@ public sealed class MoviesController : ControllerBase
             return NotFound();
         }
 
-        var response = new MovieResponse
-        {
-            Id = movie.Id,
-            Title = movie.Title,
-            Description = movie.Description,
-            ReleaseDate = movie.ReleaseDate,
-            Genre = movie.Genre,
-            Director = movie.Director,
-            AverageRating = movie.Reviews.Count != 0 ? movie.Reviews.Average(r => r.Rating) : 0,
-            ReviewCount = movie.Reviews.Count
-        };
-
+        var response = _mapper.Map<MovieResponse>(movie);
         var apiResponse = ApiResponse<MovieResponse>.Success(response);
         return Ok(apiResponse);
     }
@@ -217,18 +174,7 @@ public sealed class MoviesController : ControllerBase
         await _dbContext.Movies.AddAsync(movie);
         await _dbContext.SaveChangesAsync();
 
-        var response = new MovieResponse
-        {
-            Id = movie.Id,
-            Title = movie.Title,
-            Description = movie.Description,
-            ReleaseDate = movie.ReleaseDate,
-            Genre = movie.Genre,
-            Director = movie.Director,
-            AverageRating = 0, // Initially 0 as no reviews yet
-            ReviewCount = 0 // No reviews yet
-        };
-
+        var response = _mapper.Map<MovieResponse>(movie);
         var apiResponse = ApiResponse<MovieResponse>.Success(response);
         return Ok(apiResponse);
     }
@@ -255,18 +201,7 @@ public sealed class MoviesController : ControllerBase
 
         await _dbContext.SaveChangesAsync();
 
-        var response = new MovieResponse
-        {
-            Id = movie.Id,
-            Title = movie.Title,
-            Description = movie.Description,
-            ReleaseDate = movie.ReleaseDate,
-            Genre = movie.Genre,
-            Director = movie.Director,
-            AverageRating = movie.Reviews.Count != 0 ? movie.Reviews.Average(r => r.Rating) : 0,
-            ReviewCount = movie.Reviews.Count
-        };
-
+        var response = _mapper.Map<MovieResponse>(movie);
         var apiResponse = ApiResponse<MovieResponse>.Success(response);
         return Ok(apiResponse);
     }
