@@ -1,19 +1,15 @@
 ﻿namespace CineVault.API.Controllers.Responses;
 
-public class ApiResponse<TResponseData>
+public class ApiResponse
 {
     public int StatusCode { get; set; }
     public string Message { get; set; }
-    public TResponseData Data { get; set; }
     public bool IsSuccess => StatusCode >= 200 && StatusCode < 300;
     public Dictionary<string, string> Meta { get; set; }
-    public ApiResponse()
+
+    public static ApiResponse<T> Success<T>(T data, string message = "Success", int statusCode = 200)
     {
-        Meta = new Dictionary<string, string>();
-    }
-    public static ApiResponse<TResponseData> Success(TResponseData data, string message = "Success", int statusCode = 200)
-    {
-        return new ApiResponse<TResponseData>
+        return new ApiResponse<T>
         {
             StatusCode = statusCode,
             Message = message,
@@ -21,13 +17,26 @@ public class ApiResponse<TResponseData>
         };
     }
 
-    public static ApiResponse<TResponseData> Failure(string message, int statusCode = 400)
+    public static ApiResponse Success(string message = "Success", int statusCode = 200)
     {
-        return new ApiResponse<TResponseData>
+        return new ApiResponse
         {
             StatusCode = statusCode,
             Message = message,
-            Data = default
         };
     }
+
+    public static ApiResponse Failure(string message, int statusCode = 400)
+    {
+        return new ApiResponse
+        {
+            StatusCode = statusCode,
+            Message = message
+        };
+    }
+}
+
+public class ApiResponse<TResponseData> : ApiResponse
+{
+    public TResponseData Data { get; set; }
 }
