@@ -15,140 +15,152 @@ public class UsersController : ControllerBase
 
     public UsersController(CineVaultDbContext dbContext, ILogger logger, IMapper mapper)
     {
-        _dbContext = dbContext;
-        _logger = logger;
-        _mapper = mapper;
+        this._dbContext = dbContext;
+        this._logger = logger;
+        this._mapper = mapper;
     }
 
     [HttpGet]
     [MapToApiVersion(1)]
     public async Task<ActionResult<List<UserResponse>>> GetUsers()
     {
-        _logger.Information("Executing GetUsers method.");
-        var users = await _dbContext.Users.ToListAsync();
-        return Ok(_mapper.Map<List<UserResponse>>(users));
+        this._logger.Information("Executing GetUsers method.");
+        var users = await this._dbContext.Users.ToListAsync();
+        return this.Ok(this._mapper.Map<List<UserResponse>>(users));
     }
 
     [HttpGet("{id}")]
     [MapToApiVersion(1)]
     public async Task<ActionResult<UserResponse>> GetUserById(int id)
     {
-        _logger.Information("Executing GetUserById method for user ID {UserId}.", id);
-        var user = await _dbContext.Users.FindAsync(id);
+        this._logger.Information("Executing GetUserById method for user ID {UserId}.", id);
+        var user = await this._dbContext.Users.FindAsync(id);
         if (user is null)
         {
-            _logger.Warning("User with ID {UserId} not found.", id);
-            return NotFound();
+            this._logger.Warning("User with ID {UserId} not found.", id);
+            return this.NotFound();
         }
-        return Ok(_mapper.Map<UserResponse>(user));
+
+        return this.Ok(this._mapper.Map<UserResponse>(user));
     }
 
     [HttpPost]
     [MapToApiVersion(1)]
     public async Task<ActionResult> CreateUser(UserRequest request)
     {
-        _logger.Information("Executing CreateUser method for username {Username}.", request.Username);
-        var user = _mapper.Map<User>(request);
-        _dbContext.Users.Add(user);
-        await _dbContext.SaveChangesAsync();
-        return Ok();
+        this._logger.Information("Executing CreateUser method for username {Username}.",
+            request.Username);
+        var user = this._mapper.Map<User>(request);
+        this._dbContext.Users.Add(user);
+        await this._dbContext.SaveChangesAsync();
+        return this.Ok();
     }
 
     [HttpPut("{id}")]
     [MapToApiVersion(1)]
     public async Task<ActionResult> UpdateUser(int id, UserRequest request)
     {
-        _logger.Information("Executing UpdateUser method for user ID {UserId}.", id);
-        var user = await _dbContext.Users.FindAsync(id);
+        this._logger.Information("Executing UpdateUser method for user ID {UserId}.", id);
+        var user = await this._dbContext.Users.FindAsync(id);
         if (user is null)
         {
-            _logger.Warning("User with ID {UserId} not found for update.", id);
-            return NotFound();
+            this._logger.Warning("User with ID {UserId} not found for update.", id);
+            return this.NotFound();
         }
-        _mapper.Map(request, user);
-        await _dbContext.SaveChangesAsync();
-        return Ok();
+
+        this._mapper.Map(request, user);
+        await this._dbContext.SaveChangesAsync();
+        return this.Ok();
     }
 
     [HttpDelete("{id}")]
     [MapToApiVersion(1)]
     public async Task<ActionResult> DeleteUser(int id)
     {
-        _logger.Information("Executing DeleteUser method for user ID {UserId}.", id);
-        var user = await _dbContext.Users.FindAsync(id);
+        this._logger.Information("Executing DeleteUser method for user ID {UserId}.", id);
+        var user = await this._dbContext.Users.FindAsync(id);
         if (user is null)
         {
-            _logger.Warning("User with ID {UserId} not found for deletion.", id);
-            return NotFound();
+            this._logger.Warning("User with ID {UserId} not found for deletion.", id);
+            return this.NotFound();
         }
-        _dbContext.Users.Remove(user);
-        await _dbContext.SaveChangesAsync();
-        return Ok();
+
+        this._dbContext.Users.Remove(user);
+        await this._dbContext.SaveChangesAsync();
+        return this.Ok();
     }
 
-    [HttpGet]
+    [HttpPost("get")]
     [MapToApiVersion(2)]
-    public async Task<ActionResult<ApiResponse<List<UserResponse>>>> GetUsersUnified()
+    public async Task<ActionResult<ApiResponse<List<UserResponse>>>> GetUsersUnified(ApiRequest request)
     {
-        _logger.Information("Executing GetUsers method with unified response.");
-        var users = await _dbContext.Users.ToListAsync();
-        return Ok(ApiResponse<List<UserResponse>>.Success(_mapper.Map<List<UserResponse>>(users)));
+        this._logger.Information("Executing GetUsers method with unified response.");
+        var users = await this._dbContext.Users.ToListAsync();
+        return this.Ok(ApiResponse.Success(this._mapper.Map<List<UserResponse>>(users)));
     }
 
-    [HttpGet("{id}")]
+    [HttpPost("get/{id}")]
     [MapToApiVersion(2)]
-    public async Task<ActionResult<ApiResponse<UserResponse>>> GetUserByIdUnified(int id)
+    public async Task<ActionResult<ApiResponse<UserResponse>>> GetUserByIdUnified(ApiRequest request, int id)
     {
-        _logger.Information("Executing GetUserById method with unified response for user ID {UserId}.", id);
-        var user = await _dbContext.Users.FindAsync(id);
+        this._logger.Information(
+            "Executing GetUserById method with unified response for user ID {UserId}.", id);
+        var user = await this._dbContext.Users.FindAsync(id);
         if (user is null)
         {
-            _logger.Warning("User with ID {UserId} not found.", id);
-            return NotFound();
+            this._logger.Warning("User with ID {UserId} not found.", id);
+            return this.NotFound();
         }
-        return Ok(ApiResponse<UserResponse>.Success(_mapper.Map<UserResponse>(user)));
+
+        return this.Ok(ApiResponse.Success(this._mapper.Map<UserResponse>(user)));
     }
 
     [HttpPost]
     [MapToApiVersion(2)]
     public async Task<ActionResult<ApiResponse<UserResponse>>> CreateUserUnified(ApiRequest<UserRequest> request)
     {
-        _logger.Information("Executing CreateUser method with unified request for username {Username}.", request.Data.Username);
-        var user = _mapper.Map<User>(request.Data);
-        _dbContext.Users.Add(user);
-        await _dbContext.SaveChangesAsync();
-        return Ok(ApiResponse<UserResponse>.Success(_mapper.Map<UserResponse>(user)));
+        this._logger.Information(
+            "Executing CreateUser method with unified request for username {Username}.",
+            request.Data.Username);
+        var user = this._mapper.Map<User>(request.Data);
+        this._dbContext.Users.Add(user);
+        await this._dbContext.SaveChangesAsync();
+        return this.Ok(ApiResponse.Success(this._mapper.Map<UserResponse>(user)));
     }
 
     [HttpPut("{id}")]
     [MapToApiVersion(2)]
     public async Task<ActionResult<ApiResponse<UserResponse>>> UpdateUserUnified(int id, ApiRequest<UserRequest> request)
     {
-        _logger.Information("Executing UpdateUser method with unified request for user ID {UserId}.", id);
-        var user = await _dbContext.Users.FindAsync(id);
+        this._logger.Information(
+            "Executing UpdateUser method with unified request for user ID {UserId}.", id);
+        var user = await this._dbContext.Users.FindAsync(id);
         if (user is null)
         {
-            _logger.Warning("User with ID {UserId} not found for update.", id);
-            return NotFound();
+            this._logger.Warning("User with ID {UserId} not found for update.", id);
+            return this.NotFound();
         }
-        _mapper.Map(request.Data, user);
-        await _dbContext.SaveChangesAsync();
-        return Ok(ApiResponse<UserResponse>.Success(_mapper.Map<UserResponse>(user)));
+
+        this._mapper.Map(request.Data, user);
+        await this._dbContext.SaveChangesAsync();
+        return this.Ok(ApiResponse.Success(this._mapper.Map<UserResponse>(user)));
     }
 
     [HttpDelete("{id}")]
     [MapToApiVersion(2)]
-    public async Task<ActionResult<ApiResponse<string>>> DeleteUserUnified(int id)
+    public async Task<ActionResult<ApiResponse<string>>> DeleteUserUnified(ApiRequest request, int id)
     {
-        _logger.Information("Executing DeleteUser method with unified response for user ID {UserId}.", id);
-        var user = await _dbContext.Users.FindAsync(id);
+        this._logger.Information(
+            "Executing DeleteUser method with unified response for user ID {UserId}.", id);
+        var user = await this._dbContext.Users.FindAsync(id);
         if (user is null)
         {
-            _logger.Warning("User with ID {UserId} not found for deletion.", id);
-            return NotFound();
+            this._logger.Warning("User with ID {UserId} not found for deletion.", id);
+            return this.NotFound();
         }
-        _dbContext.Users.Remove(user);
-        await _dbContext.SaveChangesAsync();
-        return Ok(ApiResponse<string>.Success("User deleted successfully"));
+
+        this._dbContext.Users.Remove(user);
+        await this._dbContext.SaveChangesAsync();
+        return this.Ok(ApiResponse.Success("User deleted successfully", 200));
     }
 }

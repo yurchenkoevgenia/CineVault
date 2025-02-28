@@ -14,19 +14,19 @@ public class AppInfoController : ControllerBase
 
     public AppInfoController(IWebHostEnvironment environment, ILogger logger)
     {
-        _environment = environment;
-        _logger = logger;
+        this._environment = environment;
+        this._logger = logger;
     }
 
     [HttpGet("environment")]
     public IActionResult GetEnvironment()
     {
-        _logger.Information("Executing Information logging");
+        this._logger.Information("Executing Information logging");
 
-        _logger.Warning("Executing Warning logging");
+        this._logger.Warning("Executing Warning logging");
 
-        _logger.Error("Executing Error logging");
+        this._logger.Error("Executing Error logging");
 
-        return Ok(new { Environment = _environment.EnvironmentName });
+        return this.Ok(new { Environment = this._environment.EnvironmentName });
     }
 }
