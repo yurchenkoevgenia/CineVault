@@ -1,0 +1,109 @@
+{
+  "meta": {
+    "totalMovies": 15,
+    "source": "IMDb",
+    "rating": "PG-13"
+  },
+  "data": {
+    "movies": [
+      {
+        "title": "The Flash",
+        "description": "Barry Allen uses his super speed to change the past, which brings unintended consequences to his timeline.",
+        "releaseDate": "2025-03-13",
+        "genre": "Action, Adventure, Sci-Fi",
+        "director": "Andy Muschietti"
+      },
+      {
+        "title": "Guardians of the Galaxy Vol. 3",
+        "description": "The Guardians are back and must face new challenges as they navigate the cosmic universe and battle an old foe.",
+        "releaseDate": "2023-05-05",
+        "genre": "Action, Adventure, Comedy",
+        "director": "James Gunn"
+      },
+      {
+        "title": "Avatar: The Way of Water",
+        "description": "Jake Sully and Neytiri must protect their family from new threats on Pandora.",
+        "releaseDate": "2022-12-16",
+        "genre": "Action, Adventure, Fantasy",
+        "director": "James Cameron"
+      },
+      {
+        "title": "Spider-Man: No Way Home",
+        "description": "Spider-Man seeks help from Doctor Strange to erase the memory of his secret identity from the world, which leads to disastrous consequences.",
+        "releaseDate": "2021-12-17",
+        "genre": "Action, Adventure, Sci-Fi",
+        "director": "Jon Watts"
+      },
+      {
+        "title": "Dune",
+        "description": "A noble family becomes embroiled in a war for control of the galaxy's most valuable asset while its heir becomes troubled by visions of a dark future.",
+        "releaseDate": "2021-10-22",
+        "genre": "Adventure, Drama, Sci-Fi",
+        "director": "Denis Villeneuve"
+      },
+      {
+        "title": "The Matrix Resurrections",
+        "description": "Thomas Anderson, a computer programmer, is forced to question reality as he uncovers secrets about the Matrix.",
+        "releaseDate": "2021-12-22",
+        "genre": "Action, Sci-Fi",
+        "director": "Lana Wachowski"
+      },
+      {
+        "title": "Black Widow",
+        "description": "Natasha Romanoff confronts the darker parts of her ledger when a dangerous conspiracy with ties to her past arises.",
+        "releaseDate": "2021-07-09",
+        "genre": "Action, Adventure, Sci-Fi",
+        "director": "Cate Shortland"
+      },
+      {
+        "title": "The Suicide Squad",
+        "description": "A group of supervillains are sent on a mission to the dangerous island of Corto Maltese, facing enemies, death, and redemption.",
+        "releaseDate": "2021-08-06",
+        "genre": "Action, Adventure, Comedy",
+        "director": "James Gunn"
+      },
+      {
+        "title": "Eternals",
+        "description": "A team of ancient superheroes must come together to defend Earth from an ancient evil.",
+        "releaseDate": "2021-11-05",
+        "genre": "Action, Adventure, Drama",
+        "director": "Chloé Zhao"
+      },
+      {
+        "title": "F9: The Fast Saga",
+        "description": "Dominic Toretto and his crew face a new challenge as they come up against Dom's estranged brother.",
+        "releaseDate": "2021-06-25",
+        "genre": "Action, Crime, Thriller",
+        "director": "Justin Lin"
+      },
+      {
+        "title": "Jungle Cruise",
+        "description": "A jungle guide and a scientist embark on a dangerous journey through the Amazon jungle to find a mystical tree.",
+        "releaseDate": "2021-07-30",
+        "genre": "Action, Adventure, Comedy",
+        "director": "Jaume Collet-Serra"
+      },
+      {
+        "title": "No Time to Die",
+        "description": "James Bond comes out of retirement to face a new threat from a villain with dangerous technology.",
+        "releaseDate": "2021-09-30",
+        "genre": "Action, Adventure, Thriller",
+        "director": "Cary Joji Fukunaga"
+      },
+      {
+        "title": "Shang-Chi and the Legend of the Ten Rings",
+        "description": "Shang-Chi must confront his past when the mysterious Ten Rings organization reappears in his life.",
+        "releaseDate": "2021-09-03",
+        "genre": "Action, Adventure, Fantasy",
+        "director": "Destin Daniel Cretton"
+      },
+      {
+        "title": "Cruella",
+        "description": "A young Estella, a fashion-obsessed orphan, transforms into the iconic villain Cruella de Vil.",
+        "releaseDate": "2021-05-28",
+        "genre": "Comedy, Crime, Drama",
+        "director": "Craig Gillespie"
+      }
+    ]
+  }
+}

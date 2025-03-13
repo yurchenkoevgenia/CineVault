@@ -1,0 +1,62 @@
+[
+  {
+    "meta": {
+      "accountCreationDate": "2025-03-10T10:15:00Z",
+      "accountStatus": "active",
+      "verificationStatus": "new"
+    },
+    "data": {
+      "username": "john_doe",
+      "email": "john.doe@example.com",
+      "password": "SecurePassword123!"
+    }
+  },
+  {
+    "meta": {
+      "accountCreationDate": "2025-03-10T11:00:00Z",
+      "accountStatus": "inactive",
+      "verificationStatus": "pending"
+    },
+    "data": {
+      "username": "jane_smith",
+      "email": "jane.smith@example.com",
+      "password": "Password123!"
+    }
+  },
+  {
+    "meta": {
+      "accountCreationDate": "2025-03-10T12:30:00Z",
+      "accountStatus": "active",
+      "verificationStatus": "verified"
+    },
+    "data": {
+      "username": "michael_lee",
+      "email": "michael.lee@example.com",
+      "password": "Secure12345!"
+    }
+  },
+  {
+    "meta": {
+      "accountCreationDate": "2025-03-10T13:45:00Z",
+      "accountStatus": "active",
+      "verificationStatus": "new"
+    },
+    "data": {
+      "username": "susan_clark",
+      "email": "susan.clark@example.com",
+      "password": "Password@789"
+    }
+  },
+  {
+    "meta": {
+      "accountCreationDate": "2025-03-10T14:00:00Z",
+      "accountStatus": "inactive",
+      "verificationStatus": "suspended"
+    },
+    "data": {
+      "username": "david_jones",
+      "email": "david.jones@example.com",
+      "password": "DavidPassword321!"
+    }
+  }
+]

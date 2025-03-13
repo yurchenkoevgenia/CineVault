@@ -10,4 +10,7 @@ public sealed class ReviewResponse
     public required int Rating { get; set; }
     public string? Comment { get; set; }
     public required DateTime CreatedAt { get; set; }
+
+    // Додаємо кількість лайків
+    public required int LikeCount { get; set; }
 }

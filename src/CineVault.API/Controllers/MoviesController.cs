@@ -4,7 +4,6 @@ using MapsterMapper;
 namespace CineVault.API.Controllers;
 
 [ApiVersion(1)]
-[ApiVersion(2)]
 [ApiController]
 [Route("api/v{v:apiVersion}/[controller]/[action]")]
 public sealed class MoviesController : ControllerBase
@@ -118,116 +117,5 @@ public sealed class MoviesController : ControllerBase
         await this._dbContext.SaveChangesAsync();
 
         return this.Ok();
-    }
-
-    [HttpPost("get")]
-    [MapToApiVersion(2)]
-    public async Task<ActionResult<ApiResponse<List<MovieResponse>>>> GetMoviesUnified(ApiRequest request)
-    {
-        this._logger.Information("Executing GetMovies method with unified response.");
-
-        var movies = await this._dbContext.Movies
-            .Include(m => m.Reviews)
-            .ToListAsync();
-
-        var response = this._mapper.Map<List<MovieResponse>>(movies);
-        var apiResponse = ApiResponse.Success(response);
-        return this.Ok(apiResponse);
-    }
-
-    [HttpPost("get/{id}")]
-    [MapToApiVersion(2)]
-    public async Task<ActionResult<ApiResponse<MovieResponse>>> GetMovieByIdUnified(ApiRequest request, int id)
-    {
-        this._logger.Information("Executing GetMovieById method with unified response for ID {MovieId}.",
-            id);
-
-        var movie = await this._dbContext.Movies
-            .Include(m => m.Reviews)
-            .FirstOrDefaultAsync(m => m.Id == id);
-
-        if (movie is null)
-        {
-            this._logger.Warning("Movie with ID {MovieId} not found.", id);
-            return this.NotFound();
-        }
-
-        var response = this._mapper.Map<MovieResponse>(movie);
-        var apiResponse = ApiResponse.Success(response);
-        return this.Ok(apiResponse);
-    }
-
-    [HttpPost]
-    [MapToApiVersion(2)]
-    public async Task<ActionResult<ApiResponse<MovieResponse>>> CreateMovieUnified(ApiRequest<MovieRequest> request)
-    {
-        this._logger.Information("Executing CreateMovie method with unified request for movie {Title}.",
-            request.Data.Title);
-
-        var movie = new Movie
-        {
-            Title = request.Data.Title,
-            Description = request.Data.Description,
-            ReleaseDate = request.Data.ReleaseDate,
-            Genre = request.Data.Genre,
-            Director = request.Data.Director
-        };
-
-        await this._dbContext.Movies.AddAsync(movie);
-        await this._dbContext.SaveChangesAsync();
-
-        var response = this._mapper.Map<MovieResponse>(movie);
-        var apiResponse = ApiResponse.Success(response);
-        return this.Ok(apiResponse);
-    }
-
-    [HttpPut("{id}")]
-    [MapToApiVersion(2)]
-    public async Task<ActionResult<ApiResponse<MovieResponse>>> UpdateMovieUnified(int id, ApiRequest<MovieRequest> request)
-    {
-        this._logger.Information(
-            "Executing UpdateMovie method with unified request for movie ID {MovieId}.", id);
-
-        var movie = await this._dbContext.Movies.FindAsync(id);
-
-        if (movie is null)
-        {
-            this._logger.Warning("Movie with ID {MovieId} not found for update.", id);
-            return this.NotFound();
-        }
-
-        movie.Title = request.Data.Title;
-        movie.Description = request.Data.Description;
-        movie.ReleaseDate = request.Data.ReleaseDate;
-        movie.Genre = request.Data.Genre;
-        movie.Director = request.Data.Director;
-
-        await this._dbContext.SaveChangesAsync();
-
-        var response = this._mapper.Map<MovieResponse>(movie);
-        var apiResponse = ApiResponse.Success(response);
-        return this.Ok(apiResponse);
-    }
-
-    [HttpDelete("{id}")]
-    [MapToApiVersion(2)]
-    public async Task<ActionResult<ApiResponse<string>>> DeleteMovieUnified(ApiRequest request, int id)
-    {
-        this._logger.Information(
-            "Executing DeleteMovie method with unified response for movie ID {MovieId}.", id);
-
-        var movie = await this._dbContext.Movies.FindAsync(id);
-
-        if (movie is null)
-        {
-            this._logger.Warning("Movie with ID {MovieId} not found for deletion.", id);
-            return this.NotFound();
-        }
-
-        this._dbContext.Movies.Remove(movie);
-        await this._dbContext.SaveChangesAsync();
-
-        var apiResponse = ApiResponse.Success("Movie deleted successfully.", 200);
-        return this.Ok(apiResponse);
     }
 }
