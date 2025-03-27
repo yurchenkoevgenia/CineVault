@@ -1,0 +1,13 @@
+{
+  "meta": {
+    "responseTime": "2025-03-10T15:30:00Z",
+    "status": "success",
+    "message": "Review submitted successfully"
+  },
+  "data": {
+    "movieId": 2,
+    "userId": 1,
+    "rating": 9,
+    "comment": "Great movie! The action sequences were thrilling, and the storyline was solid. Highly recommend it to superhero movie fans!"
+  }
+}

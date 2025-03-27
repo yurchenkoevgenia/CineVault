@@ -10,4 +10,5 @@ public sealed class MovieResponse
     public string? Director { get; set; }
     public required double AverageRating { get; set; }
     public required int ReviewCount { get; set; }
+    public List<ReviewResponse> Reviews { get; set; } = [];
 }
