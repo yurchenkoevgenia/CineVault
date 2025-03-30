@@ -1,7 +1,6 @@
 using System.Reflection;
 using Asp.Versioning;
 using Mapster;
-using MapsterMapper;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -85,5 +84,10 @@ app.UseAuthorization();
 app.MapControllers();
 
 Console.WriteLine($"Active Environment: {app.Environment.EnvironmentName}");
+
+// TODO 3 Автоматичне створення бази даних
+var scope = app.Services.CreateScope();
+var context = scope.ServiceProvider.GetRequiredService<CineVaultDbContext>();
+context.Database.EnsureCreated();
 
 app.Run();

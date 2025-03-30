@@ -1,33 +1,32 @@
 ﻿using Asp.Versioning;
-using CineVault.API.Entities;
 using MapsterMapper;
 
 namespace CineVault.API.Controllers;
 
-// TODO 4 Реалізувати CRUD для коментарів до відгуків
 [ApiVersion(2)]
 [ApiController]
 [Route("api/v{v:apiVersion}/[controller]/[action]")]
 public sealed class ReviewsControllerV2 : ControllerBase
 {
-    private readonly CineVaultDbContext _dbContext;
-    private readonly ILogger _logger;
-    private readonly IMapper _mapper;
+    private readonly CineVaultDbContext dbContext;
+    private readonly ILogger logger;
+    private readonly IMapper mapper;
 
     public ReviewsControllerV2(CineVaultDbContext dbContext, ILogger logger, IMapper mapper)
     {
-        this._dbContext = dbContext;
-        this._logger = logger;
-        this._mapper = mapper;
+        this.dbContext = dbContext;
+        this.logger = logger;
+        this.mapper = mapper;
     }
 
     [HttpPost("get")]
     [MapToApiVersion(2)]
-    public async Task<ActionResult<ApiResponse<List<ReviewResponse>>>> GetReviewsUnified(ApiRequest request)
+    public async Task<ActionResult<ApiResponse<List<ReviewResponse>>>> GetReviewsUnified(
+        ApiRequest request)
     {
-        _logger.Information("Executing GetReviews method with unified response.");
+        this.logger.Information("Executing GetReviews method with unified response.");
 
-        var reviews = await _dbContext.Reviews
+        var reviews = await this.dbContext.Reviews
             .Include(r => r.Movie)
             .Include(r => r.User)
             .Include(r => r.Likes)
@@ -45,17 +44,18 @@ public sealed class ReviewsControllerV2 : ControllerBase
             })
             .ToListAsync();
 
-        return Ok(ApiResponse.Success(_mapper.Map<List<ReviewResponse>>(reviews)));
+        return this.Ok(ApiResponse.Success(this.mapper.Map<List<ReviewResponse>>(reviews)));
     }
 
     [HttpPost("get/{id}")]
     [MapToApiVersion(2)]
-    public async Task<ActionResult<ApiResponse<ReviewResponse>>> GetReviewByIdUnified(ApiRequest request, int id)
+    public async Task<ActionResult<ApiResponse<ReviewResponse>>> GetReviewByIdUnified(
+        ApiRequest request, int id)
     {
-        _logger.Information(
+        this.logger.Information(
             "Executing GetReviewById method with unified response for ID {ReviewId}.", id);
 
-        var review = await _dbContext.Reviews
+        var review = await this.dbContext.Reviews
             .Include(r => r.Movie)
             .Include(r => r.User)
             .Include(r => r.Likes)
@@ -76,56 +76,59 @@ public sealed class ReviewsControllerV2 : ControllerBase
 
         if (review is null)
         {
-            _logger.Warning("Review with ID {ReviewId} not found.", id);
-            return NotFound();
+            this.logger.Warning("Review with ID {ReviewId} not found.", id);
+            return this.NotFound();
         }
 
-        return Ok(ApiResponse.Success(_mapper.Map<ReviewResponse>(review)));
+        return this.Ok(ApiResponse.Success(this.mapper.Map<ReviewResponse>(review)));
     }
 
-    // TODO 4 Додати можливість ставити рейтинг (1-10), коментар необов'язковий
     [HttpPost]
     [MapToApiVersion(2)]
-    public async Task<ActionResult<ApiResponse<ReviewResponse>>> CreateReviewUnified(ApiRequest<ReviewRequest> request)
+    public async Task<ActionResult<ApiResponse<ReviewResponse>>> CreateReviewUnified(
+        ApiRequest<ReviewRequest> request)
     {
-        _logger.Information("Executing CreateOrUpdateReview method for movie ID {MovieId} and user ID {UserId}.",
+        this.logger.Information(
+            "Executing CreateOrUpdateReview method for movie ID {MovieId} and user ID {UserId}.",
             request.Data.MovieId, request.Data.UserId);
 
         // Перевірка існування користувача та фільму
-        var userExists = await _dbContext.Users.AnyAsync(u => u.Id == request.Data.UserId);
-        var movieExists = await _dbContext.Movies.AnyAsync(m => m.Id == request.Data.MovieId);
+        bool userExists = await this.dbContext.Users.AnyAsync(u => u.Id == request.Data.UserId);
+        bool movieExists = await this.dbContext.Movies.AnyAsync(m => m.Id == request.Data.MovieId);
 
         if (!userExists || !movieExists)
         {
-            return NotFound("User or movie not found.");
+            return this.NotFound("User or movie not found.");
         }
 
         if (request.Data.Rating < 1 || request.Data.Rating > 10)
         {
-            return BadRequest("Rating must be between 1 and 10.");
+            return this.BadRequest("Rating must be between 1 and 10.");
         }
 
-        // TODO 6 Якщо у користувача вже є відгук для цього фільму, оновлюємо його
-        var existingReview = await _dbContext.Reviews
-            .FirstOrDefaultAsync(r => r.MovieId == request.Data.MovieId && r.UserId == request.Data.UserId);
+        var existingReview = await this.dbContext.Reviews
+            .FirstOrDefaultAsync(r =>
+                r.MovieId == request.Data.MovieId && r.UserId == request.Data.UserId);
 
         if (existingReview != null)
         {
-            _logger.Information("Updating existing review for movie ID {MovieId} by user ID {UserId}.",
+            this.logger.Information(
+                "Updating existing review for movie ID {MovieId} by user ID {UserId}.",
                 request.Data.MovieId, request.Data.UserId);
 
             existingReview.Rating = request.Data.Rating;
             existingReview.Comment = request.Data.Comment;
-            await _dbContext.SaveChangesAsync();
+            await this.dbContext.SaveChangesAsync();
 
-            var updatedReview = await _dbContext.Reviews
+            var updatedReview = await this.dbContext.Reviews
                 .Include(r => r.User)
                 .Include(r => r.Movie)
+                .Include(review => review.Likes)
                 .FirstOrDefaultAsync(r => r.Id == existingReview.Id);
 
             return updatedReview is null
-                ? NotFound("Updated review not found.")
-                : Ok(ApiResponse.Success(new ReviewResponse
+                ? this.NotFound("Updated review not found.")
+                : this.Ok(ApiResponse.Success(new ReviewResponse
                 {
                     Id = updatedReview.Id,
                     MovieId = updatedReview.MovieId,
@@ -147,50 +150,51 @@ public sealed class ReviewsControllerV2 : ControllerBase
             Comment = request.Data.Comment
         };
 
-        _dbContext.Reviews.Add(review);
-        await _dbContext.SaveChangesAsync();
+        this.dbContext.Reviews.Add(review);
+        await this.dbContext.SaveChangesAsync();
 
-        var createdReview = await _dbContext.Reviews
+        var createdReview = await this.dbContext.Reviews
             .Include(r => r.User)
             .Include(r => r.Movie)
             .FirstOrDefaultAsync(r => r.Id == review.Id);
 
         if (createdReview == null)
         {
-            return NotFound("Created review not found.");
+            return this.NotFound("Created review not found.");
         }
 
-        // TODO 8 Доробити всі методи по створенню
-        return Ok(ApiResponse.Success(new {Id = createdReview.Id}));
+        return this.Ok(ApiResponse.Success(new { createdReview.Id }));
     }
 
     [HttpPut("{id}")]
     [MapToApiVersion(2)]
-    public async Task<ActionResult<ApiResponse<ReviewResponse>>> UpdateReviewUnified(int id, ApiRequest<ReviewRequest> request)
+    public async Task<ActionResult<ApiResponse<ReviewResponse>>> UpdateReviewUnified(int id,
+        ApiRequest<ReviewRequest> request)
     {
-        _logger.Information("Executing UpdateReview method with unified request for review ID {ReviewId}.", id);
+        this.logger.Information(
+            "Executing UpdateReview method with unified request for review ID {ReviewId}.", id);
 
-        var review = await _dbContext.Reviews
+        var review = await this.dbContext.Reviews
             .Include(r => r.User)
             .Include(r => r.Movie)
             .FirstOrDefaultAsync(r => r.Id == id);
 
         if (review is null)
         {
-            _logger.Warning("Review with ID {ReviewId} not found for update.", id);
-            return NotFound();
+            this.logger.Warning("Review with ID {ReviewId} not found for update.", id);
+            return this.NotFound();
         }
 
         if (request.Data.Rating < 1 || request.Data.Rating > 10)
         {
-            return BadRequest("Rating must be between 1 and 10.");
+            return this.BadRequest("Rating must be between 1 and 10.");
         }
 
         review.Rating = request.Data.Rating;
         review.Comment = request.Data.Comment;
-        await _dbContext.SaveChangesAsync();
+        await this.dbContext.SaveChangesAsync();
 
-        return Ok(ApiResponse.Success(new ReviewResponse
+        return this.Ok(ApiResponse.Success(new ReviewResponse
         {
             Id = review.Id,
             MovieId = review.MovieId,
@@ -206,72 +210,77 @@ public sealed class ReviewsControllerV2 : ControllerBase
 
     [HttpDelete("{id}")]
     [MapToApiVersion(2)]
-    public async Task<ActionResult<ApiResponse<string>>> DeleteReviewUnified(ApiRequest request, int id)
+    public async Task<ActionResult<ApiResponse<string>>> DeleteReviewUnified(ApiRequest request,
+        int id)
     {
-        _logger.Information(
+        this.logger.Information(
             "Executing DeleteReview method with unified response for review ID {ReviewId}.", id);
 
-        var review = await _dbContext.Reviews.FindAsync(id);
+        var review = await this.dbContext.Reviews.FindAsync(id);
         if (review is null)
         {
-            _logger.Warning("Review with ID {ReviewId} not found for deletion.", id);
-            return NotFound();
+            this.logger.Warning("Review with ID {ReviewId} not found for deletion.", id);
+            return this.NotFound();
         }
 
-        _dbContext.Reviews.Remove(review);
-        await _dbContext.SaveChangesAsync();
+        // TODO 10 Реалізувати Soft Delete
+        review.IsDeleted = true;
+        await this.dbContext.SaveChangesAsync();
 
-        return Ok(ApiResponse.Success("Review successfully deleted.", 200));
+        return this.Ok(ApiResponse.Success("Review successfully deleted.", 200));
     }
 
-    // TODO 5 Підтримка лайків для відгуків-коментарів з оцінкою
     [HttpPost("like/{reviewId}/{userId}")]
     [MapToApiVersion(2)]
     public async Task<ActionResult<ApiResponse<string>>> LikeReview(int reviewId, int userId)
     {
-        _logger.Information("User {UserId} is liking review {ReviewId}.", userId, reviewId);
+        this.logger.Information("User {UserId} is liking review {ReviewId}.", userId, reviewId);
 
-        var review = await _dbContext.Reviews.Include(r => r.Likes).FirstOrDefaultAsync(r => r.Id == reviewId);
+        var review = await this.dbContext.Reviews.Include(r => r.Likes)
+            .FirstOrDefaultAsync(r => r.Id == reviewId);
         if (review == null)
         {
-            _logger.Warning("Review with ID {ReviewId} not found.", reviewId);
-            return NotFound("Review not found.");
+            this.logger.Warning("Review with ID {ReviewId} not found.", reviewId);
+            return this.NotFound("Review not found.");
         }
 
-        var userExists = await _dbContext.Users.AnyAsync(u => u.Id == userId);
+        bool userExists = await this.dbContext.Users.AnyAsync(u => u.Id == userId);
         if (!userExists)
         {
-            return NotFound("User not found.");
+            return this.NotFound("User not found.");
         }
 
         var existingLike = review.Likes.FirstOrDefault(l => l.UserId == userId);
         if (existingLike != null)
         {
-            return BadRequest("User has already liked this review.");
+            return this.BadRequest("User has already liked this review.");
         }
 
         var like = new ReviewLike { ReviewId = reviewId, UserId = userId };
-        _dbContext.ReviewLikes.Add(like);
-        await _dbContext.SaveChangesAsync();
+        this.dbContext.ReviewLikes.Add(like);
+        await this.dbContext.SaveChangesAsync();
 
-        return Ok(ApiResponse.Success("Review liked successfully.", 200));
+        return this.Ok(ApiResponse.Success("Review liked successfully.", 200));
     }
 
     [HttpDelete("unlike/{reviewId}/{userId}")]
     [MapToApiVersion(2)]
     public async Task<ActionResult<ApiResponse<string>>> UnlikeReview(int reviewId, int userId)
     {
-        _logger.Information("User {UserId} is unliking review {ReviewId}.", userId, reviewId);
+        this.logger.Information("User {UserId} is unliking review {ReviewId}.", userId, reviewId);
 
-        var like = await _dbContext.ReviewLikes.FirstOrDefaultAsync(l => l.ReviewId == reviewId && l.UserId == userId);
+        var like =
+            await this.dbContext.ReviewLikes.FirstOrDefaultAsync(l =>
+                l.ReviewId == reviewId && l.UserId == userId);
         if (like == null)
         {
-            return NotFound("Like not found.");
+            return this.NotFound("Like not found.");
         }
 
-        _dbContext.ReviewLikes.Remove(like);
-        await _dbContext.SaveChangesAsync();
+        // TODO 10 Реалізувати Soft Delete
+        like.IsDeleted = true;
+        await this.dbContext.SaveChangesAsync();
 
-        return Ok(ApiResponse.Success("Like removed successfully.", 200));
+        return this.Ok(ApiResponse.Success("Like removed successfully.", 200));
     }
 }

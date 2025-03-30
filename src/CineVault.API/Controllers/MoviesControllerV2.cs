@@ -8,18 +8,17 @@ namespace CineVault.API.Controllers;
 [Route("api/v{v:apiVersion}/[controller]/[action]")]
 public sealed class MoviesControllerV2 : ControllerBase
 {
-    private readonly CineVaultDbContext _dbContext;
-    private readonly ILogger _logger;
-    private readonly IMapper _mapper;
+    private readonly CineVaultDbContext dbContext;
+    private readonly ILogger logger;
+    private readonly IMapper mapper;
 
     public MoviesControllerV2(CineVaultDbContext dbContext, ILogger logger, IMapper mapper)
     {
-        this._dbContext = dbContext;
-        this._logger = logger;
-        this._mapper = mapper;
+        this.dbContext = dbContext;
+        this.logger = logger;
+        this.mapper = mapper;
     }
 
-    // TODO 3 Пошук фільмів
     [HttpGet("search")]
     [MapToApiVersion(2)]
     public async Task<ActionResult<ApiResponse<List<MovieResponse>>>> SearchMoviesUnified(
@@ -30,34 +29,43 @@ public sealed class MoviesControllerV2 : ControllerBase
         [FromQuery] double? minRating,
         [FromQuery] double? maxRating)
     {
-        _logger.Information("Executing SearchMovies with filters.");
+        this.logger.Information("Executing SearchMovies with filters.");
 
-        var query = _dbContext.Movies.Include(m => m.Reviews).AsQueryable();
+        var query = this.dbContext.Movies.Include(m => m.Reviews).AsQueryable();
 
-        // Фільтрація за жанром
         if (!string.IsNullOrEmpty(genre))
+        {
             query = query.Where(m => m.Genre.Contains(genre));
+        }
 
-        // Фільтрація за назвою
         if (!string.IsNullOrEmpty(title))
+        {
             query = query.Where(m => m.Title.Contains(title));
+        }
 
-        // Фільтрація за режисером
         if (!string.IsNullOrEmpty(director))
+        {
             query = query.Where(m => m.Director.Contains(director));
+        }
 
-        // Фільтрація за роком випуску
         if (releaseYear.HasValue)
-            query = query.Where(m => m.ReleaseDate.HasValue && m.ReleaseDate.Value.Year == releaseYear.Value);
+        {
+            query = query.Where(m =>
+                m.ReleaseDate.HasValue && m.ReleaseDate.Value.Year == releaseYear.Value);
+        }
 
-        // Фільтрація за середнім рейтингом
         if (minRating.HasValue)
-            query = query.Where(m => m.Reviews.Any() && m.Reviews.Average(r => r.Rating) >= minRating.Value);
+        {
+            query = query.Where(m =>
+                m.Reviews.Any() && m.Reviews.Average(r => r.Rating) >= minRating.Value);
+        }
 
         if (maxRating.HasValue)
-            query = query.Where(m => m.Reviews.Any() && m.Reviews.Average(r => r.Rating) <= maxRating.Value);
+        {
+            query = query.Where(m =>
+                m.Reviews.Any() && m.Reviews.Average(r => r.Rating) <= maxRating.Value);
+        }
 
-        // Виконання запиту
         var movies = await query.Select(m => new MovieResponse
         {
             Id = m.Id,
@@ -82,16 +90,18 @@ public sealed class MoviesControllerV2 : ControllerBase
             }).ToList()
         }).ToListAsync();
 
-        return Ok(ApiResponse.Success(movies, $"Found {movies.Count} movies matching criteria."));
+        return this.Ok(ApiResponse.Success(movies,
+            $"Found {movies.Count} movies matching criteria."));
     }
 
     [HttpPost("get")]
     [MapToApiVersion(2)]
-    public async Task<ActionResult<ApiResponse<List<MovieResponse>>>> GetMoviesUnified(ApiRequest request)
+    public async Task<ActionResult<ApiResponse<List<MovieResponse>>>> GetMoviesUnified(
+        ApiRequest request)
     {
-        this._logger.Information("Executing GetMovies method with unified response.");
+        this.logger.Information("Executing GetMovies method with unified response.");
 
-        var movies = await this._dbContext.Movies
+        var movies = await this.dbContext.Movies
             .Include(m => m.Reviews)
             .Select(m => new MovieResponse
             {
@@ -123,12 +133,14 @@ public sealed class MoviesControllerV2 : ControllerBase
 
     [HttpPost("get/{id}")]
     [MapToApiVersion(2)]
-    public async Task<ActionResult<ApiResponse<MovieResponse>>> GetMovieByIdUnified(ApiRequest request, int id)
+    public async Task<ActionResult<ApiResponse<MovieResponse>>> GetMovieByIdUnified(
+        ApiRequest request, int id)
     {
-        this._logger.Information("Executing GetMovieById method with unified response for ID {MovieId}.",
+        this.logger.Information(
+            "Executing GetMovieById method with unified response for ID {MovieId}.",
             id);
 
-        var movie = await this._dbContext.Movies
+        var movie = await this.dbContext.Movies
             .Include(m => m.Reviews)
             .Select(m => new MovieResponse
             {
@@ -157,20 +169,21 @@ public sealed class MoviesControllerV2 : ControllerBase
 
         if (movie is null)
         {
-            this._logger.Warning("Movie with ID {MovieId} not found.", id);
+            this.logger.Warning("Movie with ID {MovieId} not found.", id);
             return this.NotFound();
         }
 
         return this.Ok(ApiResponse.Success(movie));
     }
 
-    // TODO 8 Доробити всі методи по створенню
     [HttpPost]
     [MapToApiVersion(2)]
-    public async Task<ActionResult<ApiResponse<MovieResponse>>> CreateMovieUnified(ApiRequest<MovieRequest> request)
+    public async Task<ActionResult<ApiResponse<MovieResponse>>> CreateMovieUnified(
+        ApiRequest<MovieRequest> request)
     {
-        this._logger.Information("Executing CreateMovie method with unified request for movie {Title}.",
-        request.Data.Title);
+        this.logger.Information(
+            "Executing CreateMovie method with unified request for movie {Title}.",
+            request.Data.Title);
 
         var movie = new Movie
         {
@@ -181,47 +194,49 @@ public sealed class MoviesControllerV2 : ControllerBase
             Director = request.Data.Director
         };
 
-        await this._dbContext.Movies.AddAsync(movie);
-        await this._dbContext.SaveChangesAsync();
+        await this.dbContext.Movies.AddAsync(movie);
+        await this.dbContext.SaveChangesAsync();
 
-        var movieId = movie.Id;
+        int movieId = movie.Id;
 
-        var response = this._mapper.Map<MovieResponse>(movie);
+        var response = this.mapper.Map<MovieResponse>(movie);
         var apiResponse = ApiResponse.Success(new { movieId });
         return this.Ok(apiResponse);
     }
 
-    // TODO 1 Додати реалізацію масового завантаження фільмів
     [HttpPost("bulk-create")]
     [MapToApiVersion(2)]
-    public async Task<ActionResult<ApiResponse<List<MovieResponse>>>> BulkCreateMoviesUnified(ApiRequest<BulkMoviesRequest> request)
+    public async Task<ActionResult<ApiResponse<List<MovieResponse>>>> BulkCreateMoviesUnified(
+        ApiRequest<BulkMoviesRequest> request)
     {
-        this._logger.Information("Executing BulkCreateMovies method with {MovieCount} movies.", request.Data.Movies.Count);
+        this.logger.Information("Executing BulkCreateMovies method with {MovieCount} movies.",
+            request.Data.Movies.Count);
 
-        var movies = this._mapper.Map<List<Movie>>(request.Data.Movies);
+        var movies = this.mapper.Map<List<Movie>>(request.Data.Movies);
 
-        await this._dbContext.Movies.AddRangeAsync(movies);
-        await this._dbContext.SaveChangesAsync();
+        await this.dbContext.Movies.AddRangeAsync(movies);
+        await this.dbContext.SaveChangesAsync();
 
         var movieIds = movies.Select(m => m.Id).ToList();
 
-        var response = this._mapper.Map<List<MovieResponse>>(movies);
+        var response = this.mapper.Map<List<MovieResponse>>(movies);
         var apiResponse = ApiResponse.Success(new { movieIds });
         return this.Ok(apiResponse);
     }
 
     [HttpPut("{id}")]
     [MapToApiVersion(2)]
-    public async Task<ActionResult<ApiResponse<MovieResponse>>> UpdateMovieUnified(int id, ApiRequest<MovieRequest> request)
+    public async Task<ActionResult<ApiResponse<MovieResponse>>> UpdateMovieUnified(int id,
+        ApiRequest<MovieRequest> request)
     {
-        this._logger.Information(
+        this.logger.Information(
             "Executing UpdateMovie method with unified request for movie ID {MovieId}.", id);
 
-        var movie = await this._dbContext.Movies.FindAsync(id);
+        var movie = await this.dbContext.Movies.FindAsync(id);
 
         if (movie is null)
         {
-            this._logger.Warning("Movie with ID {MovieId} not found for update.", id);
+            this.logger.Warning("Movie with ID {MovieId} not found for update.", id);
             return this.NotFound();
         }
 
@@ -231,77 +246,202 @@ public sealed class MoviesControllerV2 : ControllerBase
         movie.Genre = request.Data.Genre;
         movie.Director = request.Data.Director;
 
-        await this._dbContext.SaveChangesAsync();
+        await this.dbContext.SaveChangesAsync();
 
-        var response = this._mapper.Map<MovieResponse>(movie);
+        var response = this.mapper.Map<MovieResponse>(movie);
         var apiResponse = ApiResponse.Success(response);
         return this.Ok(apiResponse);
     }
 
     [HttpDelete("{id}")]
     [MapToApiVersion(2)]
-    public async Task<ActionResult<ApiResponse<string>>> DeleteMovieUnified(ApiRequest request, int id)
+    public async Task<ActionResult<ApiResponse<string>>> DeleteMovieUnified(ApiRequest request,
+        int id)
     {
-        this._logger.Information(
+        this.logger.Information(
             "Executing DeleteMovie method with unified response for movie ID {MovieId}.", id);
 
-        var movie = await this._dbContext.Movies.FindAsync(id);
+        var movie = await this.dbContext.Movies.FindAsync(id);
 
         if (movie is null)
         {
-            this._logger.Warning("Movie with ID {MovieId} not found for deletion.", id);
+            this.logger.Warning("Movie with ID {MovieId} not found for deletion.", id);
             return this.NotFound();
         }
 
-        this._dbContext.Movies.Remove(movie);
-        await this._dbContext.SaveChangesAsync();
+        // TODO 10 Реалізувати Soft Delete
+        movie.IsDeleted = true;
+        await this.dbContext.SaveChangesAsync();
 
         var apiResponse = ApiResponse.Success("Movie deleted successfully.", 200);
         return this.Ok(apiResponse);
     }
 
-    // TODO 7 Масове видалення фільмів
+    // TODO 13 Виконати оптимізацію роботи з EFCore
     [HttpPost("bulk-delete")]
     [MapToApiVersion(2)]
-    public async Task<ActionResult<ApiResponse<string>>> BulkDeleteMoviesUnified(ApiRequest<List<int>> request)
+    public async Task<ActionResult<ApiResponse<string>>> BulkDeleteMoviesUnified(
+        ApiRequest<List<int>> request)
     {
-        this._logger.Information("Executing BulkDeleteMovies method for {MovieCount} movies.", request.Data.Count);
+        this.logger.Information("Executing BulkDeleteMovies method for {MovieCount} movies.",
+            request.Data.Count);
 
-        var movieIds = request.Data;
-        var moviesToDelete = new List<Movie>();
-        var moviesWithReviews = new List<int>();
+        var movies = await this.dbContext.Movies
+            .Include(m => m.Reviews)
+            .Where(m => request.Data.Contains(m.Id))
+            .ToListAsync();
 
-        // TODO 7 Додати перевірку, чи є фільми у відгуках, перед видаленням
-        foreach (var movieId in movieIds)
+        var moviesWithReviews = movies
+            .Where(m => m.Reviews.Any())
+            .Select(m => m.Id)
+            .ToList();
+
+        var moviesToDelete = movies
+            .Where(m => !m.Reviews.Any())
+            .ToList();
+
+        if (moviesToDelete.Count > 0)
         {
-            var movie = await _dbContext.Movies.Include(m => m.Reviews).FirstOrDefaultAsync(m => m.Id == movieId);
+            foreach (var movie in moviesToDelete)
+            {
+                movie.IsDeleted = true;
+            }
 
-            if (movie != null && movie.Reviews.Any())
-            {
-                // TODO 7 Якщо є, то не видаляти такий, а виводити попередження, а інші фільми з масиву видалити
-                moviesWithReviews.Add(movieId);
-            }
-            else
-            {
-                moviesToDelete.Add(movie);
-            }
+            await this.dbContext.SaveChangesAsync();
         }
 
-        // Видаляємо фільми без відгуків
-        if (moviesToDelete.Any())
-        {
-            _dbContext.Movies.RemoveRange(moviesToDelete);
-            await _dbContext.SaveChangesAsync();
-        }
-
-        // Формуємо відповідь
         var response = new
         {
-            SuccessMessage = $"Successfully deleted {moviesToDelete.Count} movies.",
-            DeletedMovies = moviesToDelete.Select(m => m.Id).ToList(),
-            MoviesWithReviews = moviesWithReviews
+            SuccessfullyDeleted = moviesToDelete.Count,
+            DeletedMovieIds = moviesToDelete.Select(m => m.Id).ToList(),
+            MoviesWithReviewsIds = moviesWithReviews,
+            Message = moviesWithReviews.Count > 0
+                ? $"Could not delete {moviesWithReviews.Count} movies with existing reviews"
+                : "All selected movies were successfully deleted"
         };
 
-        return Ok(ApiResponse.Success(response));
+        return this.Ok(ApiResponse.Success(response));
+    }
+
+    // TODO 9 Додати такі нові методи в API
+    [HttpPost("get/details/{id}")]
+    [MapToApiVersion(2)]
+    public async Task<ActionResult<ApiResponse<MovieDetailsResponse>>> GetMovieDetailsUnified(
+        ApiRequest request, int id)
+    {
+        this.logger.Information("Executing GetMovieDetails method for movie ID {MovieId}.", id);
+
+        // TODO 13 Виконати оптимізацію роботи з EFCore
+        var movie = await this.dbContext.Movies
+            .Select(m => new MovieDetailsResponse
+            {
+                Id = m.Id,
+                Title = m.Title,
+                Description = m.Description,
+                ReleaseDate = m.ReleaseDate,
+                Genre = m.Genre,
+                Director = m.Director,
+                AverageRating = m.Reviews.Any() ? m.Reviews.Average(r => r.Rating) : 0,
+                ReviewCount = m.Reviews.Count,
+                LatestReviews = m.Reviews
+                    .OrderByDescending(r => r.CreatedAt)
+                    .Take(5)
+                    .Select(r => new ReviewResponse
+                    {
+                        Id = r.Id,
+                        MovieId = r.MovieId,
+                        MovieTitle = m.Title,
+                        UserId = r.UserId,
+                        Username = r.User.Username,
+                        Rating = r.Rating,
+                        Comment = r.Comment,
+                        CreatedAt = r.CreatedAt,
+                        LikeCount = r.Likes.Count
+                    }).ToList()
+            })
+            .FirstOrDefaultAsync(m => m.Id == id);
+
+        if (movie is null)
+        {
+            this.logger.Warning("Movie with ID {MovieId} not found.", id);
+            return this.NotFound();
+        }
+
+        return this.Ok(ApiResponse.Success(movie));
+    }
+
+    // TODO 9 Додати такі нові методи в API
+    [HttpPost("search/advanced")]
+    [MapToApiVersion(2)]
+    public async Task<ActionResult<ApiResponse<List<MovieResponse>>>> SearchMoviesUnified(
+        ApiRequest<MovieSearchRequest> request)
+    {
+        this.logger.Information("Executing complex movie search with filters.");
+
+        var query = this.dbContext.Movies
+            .Include(m => m.Reviews)
+            .AsQueryable();
+
+        if (!string.IsNullOrEmpty(request.Data.SearchText))
+        {
+            string searchText = request.Data.SearchText.ToLower();
+            query = query.Where(m =>
+                m.Title.ToLower().Contains(searchText) ||
+                m.Description.ToLower().Contains(searchText) ||
+                m.Director.ToLower().Contains(searchText));
+        }
+
+        if (!string.IsNullOrEmpty(request.Data.Genre))
+        {
+            query = query.Where(m => m.Genre.Contains(request.Data.Genre));
+        }
+
+        if (request.Data.MinRating.HasValue)
+        {
+            query = query.Where(m =>
+                m.Reviews.Any() &&
+                m.Reviews.Average(r => r.Rating) >= request.Data.MinRating.Value);
+        }
+
+        if (request.Data.ReleaseDateFrom.HasValue)
+        {
+            query = query.Where(m => m.ReleaseDate >= request.Data.ReleaseDateFrom);
+        }
+
+        if (request.Data.ReleaseDateTo.HasValue)
+        {
+            query = query.Where(m => m.ReleaseDate <= request.Data.ReleaseDateTo);
+        }
+
+        var movies = await query.Select(m => new MovieResponse
+        {
+            Id = m.Id,
+            Title = m.Title,
+            Description = m.Description,
+            ReleaseDate = m.ReleaseDate,
+            Genre = m.Genre,
+            Director = m.Director,
+            AverageRating = m.Reviews.Any() ? m.Reviews.Average(r => r.Rating) : 0,
+            ReviewCount = m.Reviews.Count,
+            Reviews = m.Reviews
+                    .OrderByDescending(r => r.CreatedAt)
+                    .Take(5)
+                    .Select(r => new ReviewResponse
+                    {
+                        Id = r.Id,
+                        MovieId = r.MovieId,
+                        MovieTitle = m.Title,
+                        UserId = r.UserId,
+                        Username = r.User != null ? r.User.Username : "Unknown",
+                        Rating = r.Rating,
+                        Comment = r.Comment,
+                        CreatedAt = r.CreatedAt,
+                        LikeCount = r.Likes.Count
+                    }).ToList()
+        })
+            .ToListAsync();
+
+        return this.Ok(ApiResponse.Success(movies,
+            $"Found {movies.Count} movies matching criteria."));
     }
 }
