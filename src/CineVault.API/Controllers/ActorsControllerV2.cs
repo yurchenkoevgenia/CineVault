@@ -65,6 +65,28 @@ public class ActorsControllerV2 : ControllerBase
         return this.Ok(ApiResponse.Success(new { ActorId = actor.Id }));
     }
 
+    // TODO 5 Масове завантаження акторів
+    [HttpPost("bulk-create")]
+    [MapToApiVersion(2)]
+    public async Task<ActionResult<ApiResponse<List<ActorResponse>>>> BulkCreateActors(
+    ApiRequest<List<ActorRequest>> request)
+    {
+        this.logger.Information("Executing BulkCreateActors method with {ActorCount} actors.",
+            request.Data.Count);
+
+        var actors = this.mapper.Map<List<Actor>>(request.Data);
+
+        await this.dbContext.Actors.AddRangeAsync(actors);
+        await this.dbContext.SaveChangesAsync();
+
+        var actorIds = actors.Select(a => a.Id).ToList();
+
+        var response = this.mapper.Map<List<ActorResponse>>(actors);
+        var apiResponse = ApiResponse.Success(new { actorIds });
+        return this.Ok(apiResponse);
+    }
+
+
     [HttpPut("{id}")]
     [MapToApiVersion(2)]
     public async Task<ActionResult<ApiResponse<ActorResponse>>> UpdateActor(int id,
