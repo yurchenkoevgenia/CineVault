@@ -1,0 +1,67 @@
+[
+{
+  "meta": {
+    "responseTime": "2025-03-10T16:00:00Z",
+    "status": "success",
+    "message": "Review submitted successfully"
+  },
+  "data": {
+    "movieId": 3,
+    "userId": 2,
+    "rating": 8,
+    "comment": "Loved the humor and the emotional moments. The character arcs were beautifully wrapped up!"
+  }
+},
+{
+  "meta": {
+    "responseTime": "2025-03-10T16:15:00Z",
+    "status": "success",
+    "message": "Review submitted successfully"
+  },
+  "data": {
+    "movieId": 3,
+    "userId": 3,
+    "rating": 7,
+    "comment": "Visually stunning and fun, but I felt the villain could have been more impactful."
+  }
+},
+{
+  "meta": {
+    "responseTime": "2025-03-10T16:45:00Z",
+    "status": "success",
+    "message": "Review submitted successfully"
+  },
+  "data": {
+    "movieId": 3,
+    "userId": 4,
+    "rating": 9,
+    "comment": "James Gunn delivered another masterpiece! Loved the soundtrack and the character development."
+  }
+},
+{
+  "meta": {
+    "responseTime": "2025-03-10T17:05:00Z",
+    "status": "success",
+    "message": "Review submitted successfully"
+  },
+  "data": {
+    "movieId": 3,
+    "userId": 5,
+    "rating": 10,
+    "comment": "Best Guardians movie yet! Emotional, action-packed, and hilarious. Rocket’s story was heart-wrenching."
+  }
+},
+{
+  "meta": {
+    "responseTime": "2025-03-10T17:30:00Z",
+    "status": "success",
+    "message": "Review submitted successfully"
+  },
+  "data": {
+    "movieId": 3,
+    "userId": 6,
+    "rating": 6,
+    "comment": "It was entertaining, but the pacing felt a bit slow in the middle. Still a solid Marvel movie."
+  }
+}
+]
