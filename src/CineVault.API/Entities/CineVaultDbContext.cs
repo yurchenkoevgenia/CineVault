@@ -13,6 +13,12 @@ public sealed class CineVaultDbContext : DbContext
     {
     }
 
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        // TODO 12 Увімкнути логування SQL-запитів у DbContext для дебагінгу та перевірки правильності запитів. Включити детальне логування (EnableSensitiveDataLogging).
+        optionsBuilder.EnableSensitiveDataLogging();
+    }
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         // TODO 4 Виконати міграцію
