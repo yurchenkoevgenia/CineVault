@@ -2,7 +2,7 @@
 
 namespace CineVault.API.Mapping;
 
-public class ReviewProfile
+public class ReviewProfile : IRegister
 {
     public void Register(TypeAdapterConfig config)
     {

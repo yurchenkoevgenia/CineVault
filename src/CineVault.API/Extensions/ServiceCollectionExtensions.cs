@@ -14,7 +14,8 @@ public static class ServiceCollectionExtensions
                 throw new InvalidOperationException("Connection string is not configured");
             }
 
-            options.UseInMemoryDatabase(connectionString);
+            // TODO 1 Налаштувати EF Core для роботи з базою даних у проєкті
+            options.UseSqlServer(connectionString);
         });
 
         return services;

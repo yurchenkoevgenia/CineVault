@@ -58,5 +58,17 @@
       "email": "david.jones@example.com",
       "password": "DavidPassword321!"
     }
+  },
+  {
+    "meta": {
+      "accountCreationDate": "2025-03-11T15:10:00Z",
+      "accountStatus": "inactive",
+      "verificationStatus": "new"
+    },
+    "data": {
+      "username": "neil_josten",
+      "email": "neil.josten@example.com",
+      "password": "ExyTheBest86!"
+    }
   }
 ]
